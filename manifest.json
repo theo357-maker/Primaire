@@ -1,8 +1,8 @@
 {
-  "name": "Espace Parent - hybrilink",
-  "short_name": "hybrilink",
+  "name": "Espace Parent - CS La Colombe",
+  "short_name": "CS La Colombe",
   "description": "Application de suivi scolaire pour les parents",
-  "start_url": "/index.html",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#3498db",
   "theme_color": "#3498db",
@@ -15,13 +15,13 @@
   
   "icons": [
     {
-      "src": "icon-72x72.png",
+      "src": "/icon-72x72.png",
       "sizes": "72x72",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "icon-96x96.png",
+      "src": "/icon-96x96.png",
       "sizes": "96x96",
       "type": "image/png",
       "purpose": "any maskable"
@@ -66,14 +66,14 @@
   
   "screenshots": [
     {
-      "src": "dashboard.png",
+      "src": "/screenshots/dashboard.png",
       "sizes": "1080x1920",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "Tableau de bord"
     },
     {
-      "src": "notes.png",
+      "src": "/screenshots/notes.png",
       "sizes": "1080x1920",
       "type": "image/png",
       "form_factor": "narrow",
@@ -114,14 +114,14 @@
       "name": "Notifications",
       "short_name": "Alertes",
       "description": "Voir les notifications",
-      "url": "/indec.html?page=notifications",
+      "url": "/index.html?page=notifications",
       "icons": [{ "src": "/icon-96x96.png", "sizes": "96x96" }]
     }
   ],
   
   "protocol_handlers": [
     {
-      "protocol": "web+hybrilink",
+      "protocol": "web+cslacolombe",
       "url": "/index.html?url=%s"
     }
   ],
@@ -143,7 +143,7 @@
   
   "file_handlers": [
     {
-      "action": "/index.html",
+      "action": "/parent.html",
       "accept": {
         "application/pdf": [".pdf"],
         "image/*": [".jpg", ".jpeg", ".png", ".gif"]
