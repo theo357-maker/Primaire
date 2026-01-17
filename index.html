@@ -1,0 +1,3443 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Espace Enseignant-primaire - hybrilink</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <!-- Ajout pour l'export Word -->
+    <script src="https://unpkg.com/docx@7.1.0/build/index.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+
+
+
+
+    <!-- PWA Meta Tags -->
+    <meta name="application-name" content="TheoVêt">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="TheoVêt">
+    <meta name="description" content="Solution complète de gestion de commerce de vêtements">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="msapplication-TileColor" content="#3498db">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="theme-color" content="#3498db">
+
+    <!-- Service Worker et mise à jour -->
+    <meta name="version" content="2.1.0">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+
+
+
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="icons/icon-167x167.png">
+
+    <!-- Manifest -->
+    <link rel="manifest" href="manifest.json">
+
+
+
+    <!-- Styles et Bibliothèques -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+
+<!-- Scripts de mise à jour -->
+<script src="update-system.js"></script>
+    <style>
+        :root {
+            --primary: #3498db; 
+            --secondary: #2c3e50; 
+            --success: #27ae60;
+            --danger: #e74c3c; 
+            --warning: #f39c12; 
+            --info: #1abc9c;
+            --light: #ecf0f1; 
+            --dark: #34495e;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f5f6fa;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+
+        /* --- Styles Communs --- */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        
+        .login-card {
+            background: white;
+            padding: 3rem;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.08);
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+        }
+
+/* Styles pour les notifications de mise à jour */
+        .update-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border-left: 4px solid #3498db;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            padding: 15px 20px;
+            min-width: 300px;
+            max-width: 400px;
+            z-index: 9999;
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+        }
+
+        .update-toast.show {
+            transform: translateX(0);
+        }
+
+        .update-toast.success {
+            border-left-color: #27ae60;
+        }
+
+        .update-toast.warning {
+            border-left-color: #f39c12;
+        }
+
+        .update-toast.danger {
+            border-left-color: #e74c3c;
+        }
+        
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+        }
+        
+        .nav-menu {
+            list-style: none;
+            padding: 1rem 0;
+            margin: 0;
+        }
+        
+        .nav-menu li a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 20px;
+            color: var(--dark);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .nav-menu li a.active, .nav-menu li a:hover {
+            background: #eaf5fc;
+            color: var(--primary);
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .app-header {
+            background: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .content-area {
+            padding: 2rem;
+            flex: 1;
+        }
+        
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            color: white;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+        }
+        
+        .btn-success {
+            background: var(--success);
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+        }
+        
+        .btn-warning {
+            background: var(--warning);
+        }
+        
+        .btn-info {
+            background: var(--info);
+        }
+        
+        .btn-secondary {
+            background: var(--secondary);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        /* --- Styles améliorés --- */
+        .table-container {
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        
+        th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .badge-success {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .badge-warning {
+            background-color: var(--warning);
+            color: white;
+        }
+        
+        .badge-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .badge-info {
+            background-color: var(--info);
+            color: white;
+        }
+        
+        .badge-secondary {
+            background-color: var(--secondary);
+            color: white;
+        }
+        
+        .search-box {
+            margin-bottom: 1.5rem;
+        }
+        
+        .search-box input {
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .action-buttons button {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-card i {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+        
+        .stat-card h3 {
+            font-size: 1.8rem;
+            margin: 0.5rem 0;
+        }
+        
+        .stat-card p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .filter-options {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .filter-options select {
+            min-width: 150px;
+        }
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .student-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        
+        .detail-item {
+            margin-bottom: 1rem;
+        }
+        
+        .detail-item label {
+            font-weight: 600;
+            color: #666;
+        }
+        
+        .detail-item p {
+            margin-top: 0.25rem;
+        }
+        
+        .photo-upload {
+            text-align: center;
+            margin: 1rem 0;
+        }
+        
+        .photo-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary);
+            margin: 0 auto 1rem;
+            display: block;
+        }
+        
+        .photo-placeholder {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: #eee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            color: #999;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .upload-btn {
+            background: var(--info);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        /* --- Styles pour la photo de profil de l'enseignant --- */
+        .teacher-profile {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .teacher-photo {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--primary);
+        }
+        
+        .teacher-photo-placeholder {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #eee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+        }
+        
+        /* --- Styles pour le bouton menu --- */
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--dark);
+        }
+        
+        /* --- Styles pour le tableau des cotes --- */
+        .grades-table th, .grades-table td {
+            text-align: center;
+        }
+        
+        .grades-table input {
+            width: 70px;
+            text-align: center;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        
+        .grades-table input:focus {
+            border-color: var(--primary);
+            outline: none;
+            background-color: #f8fdff;
+        }
+        
+        .grades-table .editable {
+            background-color: #fff;
+        }
+        
+        .grades-table .published {
+            background-color: #e8f5e9;
+        }
+        
+        .cm-editable {
+            background-color: #fff8e1 !important;
+            font-weight: 600;
+        }
+        
+        .cm-input {
+            width: 60px;
+            text-align: center;
+            padding: 4px;
+            border: 1px solid #ffd54f;
+            border-radius: 3px;
+            background-color: #fffde7;
+            font-weight: 600;
+        }
+        
+        /* --- Styles pour les devoirs --- */
+        .file-upload {
+            border: 2px dashed #ddd;
+            padding: 2rem;
+            text-align: center;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .file-upload.active {
+            border-color: var(--primary);
+            background-color: #eaf5fc;
+        }
+        
+        .file-preview {
+            max-width: 200px;
+            max-height: 200px;
+            margin-top: 1rem;
+        }
+        
+        .homework-card {
+            border-left: 4px solid var(--info);
+            margin-bottom: 1rem;
+        }
+        
+        .homework-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        /* --- Styles pour la gestion des périodes --- */
+        .period-management {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .period-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .period-btn {
+            padding: 8px 16px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .period-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .period-btn:hover:not(.active) {
+            background: #eaf5fc;
+            border-color: var(--primary);
+        }
+        
+        .export-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .export-btn {
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* --- Styles pour la barre d'outils en haut --- */
+        .header-tools {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .logout-btn {
+            padding: 8px 16px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .logout-btn:hover {
+            background: #c0392b;
+        }
+        
+        /* --- Styles pour les modals --- */
+        .modal-cm-edit {
+            max-width: 500px;
+        }
+        
+        .modal-cm-edit .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-cm-edit label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        
+        .modal-cm-edit .cm-value {
+            font-size: 1.2rem;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            text-align: center;
+        }
+        
+        @media (max-width: 768px) {
+            .menu-toggle {
+                display: block;
+            }
+            
+            .sidebar {
+                position: fixed;
+                z-index: 1000;
+                height: 100%;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            
+            .grades-table {
+                font-size: 0.8rem;
+            }
+            
+            .grades-table th, .grades-table td {
+                padding: 8px 5px;
+            }
+            
+            .grades-table input {
+                width: 50px;
+            }
+            
+            .cm-input {
+                width: 45px;
+            }
+            
+            .period-management {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .period-buttons {
+                justify-content: center;
+            }
+            
+            .header-tools {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+            
+            .export-buttons {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Écran de connexion/activation -->
+    <div id="login-overlay" class="login-overlay">
+        <div class="login-card">
+            <h3>Portail Enseignant Primaire</h3>
+            <p>Complexe Scolaire la Colombe</p>
+            
+            <!-- Formulaire de connexion -->
+            <div id="login-form-container">
+                <h4 style="margin-bottom: 20px; text-align: center;">Connexion</h4>
+                <div id="login-alert" class="alert hidden"></div>
+                <form id="login-form-element">
+                    <div class="form-group">
+                        <label for="login-matricule">Matricule</label>
+                        <input type="text" id="login-matricule" class="form-control" placeholder="Votre matricule" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Mot de passe</label>
+                        <input type="password" id="login-password" class="form-control" placeholder="Votre mot de passe" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Se connecter</button>
+                </form>
+                <div style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+                    <p>Vous n'avez pas encore activé votre compte? <a id="show-activation" style="color: var(--primary); text-decoration: none; font-weight: 500; cursor: pointer;">Activer mon compte</a></p>
+                </div>
+            </div>
+            
+            <!-- Formulaire d'activation -->
+            <div id="activation-form-container" class="hidden">
+                <h4 style="margin-bottom: 20px; text-align: center;">Activation du compte</h4>
+                <div id="activation-alert" class="alert hidden"></div>
+                <form id="activation-form-element">
+                    <div class="form-group">
+                        <label for="activation-matricule">Matricule</label>
+                        <input type="text" id="activation-matricule" class="form-control" placeholder="Votre matricule" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="activation-password">Mot de passe</label>
+                        <input type="password" id="activation-password" class="form-control" placeholder="Créez un mot de passe" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="activation-confirm-password">Confirmer le mot de passe</label>
+                        <input type="password" id="activation-confirm-password" class="form-control" placeholder="Confirmez votre mot de passe" required>
+                    </div>
+                    <button type="submit" class="btn btn-success" style="width: 100%;">Activer mon compte</button>
+                </form>
+                <div style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+                    <p>Vous avez déjà un compte? <a id="show-login" style="color: var(--primary); text-decoration: none; font-weight: 500; cursor: pointer;">Se connecter</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Application Enseignant (cachée par défaut) -->
+    <div id="teacher-app" class="app-container hidden">
+        <nav class="sidebar">
+            <div style="padding: 1.5rem; text-align: center; border-bottom: 1px solid #eee;">
+                <i class="fas fa-chalkboard-teacher" style="font-size: 2rem; color: var(--primary);"></i>
+                <h3 style="margin-top: 0.5rem;">Enseignant Primaire</h3>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#" class="active" data-page="dashboard"><i class="fas fa-tachometer-alt fa-fw"></i> Tableau de Bord</a></li>
+                <li><a href="#" data-page="my-students"><i class="fas fa-users fa-fw"></i> Mes Élèves</a></li>
+                <li><a href="#" data-page="grade-management"><i class="fas fa-chart-bar fa-fw"></i> Gestion des Cotes</a></li>
+                <li><a href="#" data-page="homework"><i class="fas fa-book fa-fw"></i> Devoirs</a></li>
+                <li><a href="#" data-page="profile"><i class="fas fa-user fa-fw"></i> Profil</a></li>
+            </ul>
+        </nav>
+        <div class="main-content">
+            <header class="app-header">
+                <button class="menu-toggle" id="menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h2 id="page-title">Tableau de Bord</h2>
+                <div class="header-tools">
+                    <div class="teacher-profile">
+                        <div id="teacher-photo-container">
+                            <!-- La photo sera insérée ici dynamiquement -->
+                        </div>
+                        <span id="teacher-name"></span>
+                    </div>
+                    <button class="logout-btn" id="teacher-logout">
+                        <i class="fas fa-sign-out-alt"></i> Déconnexion
+                    </button>
+                </div>
+            </header>
+            <main class="content-area">
+                <div id="global-alert" class="alert hidden"></div>
+                
+                <!-- Page: Tableau de Bord -->
+                <div id="dashboard-page" class="page active">
+                    <div class="stats-grid">
+                        <div class="stat-card" data-target="my-students">
+                            <i class="fas fa-users"></i>
+                            <h3 id="total-students">0</h3>
+                            <p>Élèves dans ma classe</p>
+                        </div>
+                        <div class="stat-card" data-target="grade-management">
+                            <i class="fas fa-book"></i>
+                            <h3 id="total-courses">0</h3>
+                            <p>Cours créés</p>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-chart-line"></i>
+                            <h3 id="average-grade">0%</h3>
+                            <p>Moyenne de la classe</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h4>Ma Classe</h4>
+                        <p id="teacher-class-info">Chargement...</p>
+                    </div>
+                    
+                    <div class="card">
+                        <h4>Activités récentes</h4>
+                        <div id="recent-activities">
+                            <p>Aucune activité récente</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Page: Mes Élèves -->
+                <div id="my-students-page" class="page">
+                    <div class="card">
+                        <h4>Mes Élèves</h4>
+                        <p id="class-name-display" style="margin-bottom: 1rem; font-weight: 500;"></p>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Photo</th>
+                                        <th>Matricule</th>
+                                        <th>Nom Complet</th>
+                                        <th>Date de Naissance</th>
+                                        <th>Sexe</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="students-table-body">
+                                    <!-- Les élèves seront chargés ici dynamiquement -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Page: Gestion des Cotes -->
+                <div id="grade-management-page" class="page">
+                    <!-- Gestion des périodes -->
+                    <div class="card">
+                        <h4>Gestion des Périodes</h4>
+                        <div class="period-management">
+                            <div style="font-weight: 500;">Période active :</div>
+                            <div class="period-buttons">
+                                <button class="period-btn" data-period="1ère P">1ère P</button>
+                                <button class="period-btn" data-period="2ème P">2ème P</button>
+                                <button class="period-btn" data-period="Examen S1">Examen S1</button>
+                                <button class="period-btn" data-period="Total S1">Total S1</button>
+                                <button class="period-btn" data-period="3ème P">3ème P</button>
+                                <button class="period-btn" data-period="4ème P">4ème P</button>
+                                <button class="period-btn" data-period="Examen S2">Examen S2</button>
+                                <button class="period-btn" data-period="Total S2">Total S2</button>
+                                <button class="period-btn" data-period="Total Général">Total Général</button>
+                            </div>
+                        </div>
+                        <div style="margin-top: 1rem; padding: 1rem; background: #f0f7ff; border-radius: 5px;">
+                            <p><strong>Période sélectionnée :</strong> <span id="selected-period-display">1ère P</span></p>
+                            <p style="margin-top: 0.5rem; color: #666;">
+                                <small>Les modifications dans le tableau ci-dessous seront sauvegardées pour cette période.</small>
+                            </p>
+                            <p style="margin-top: 0.5rem; color: #e67e22;">
+                                <small><i class="fas fa-edit"></i> <strong>Nouveau :</strong> Vous pouvez maintenant modifier le CM pour chaque cours en cliquant sur sa valeur dans le tableau.</small>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="card course-form">
+                        <h4>Créer un nouveau cours</h4>
+                        <form id="course-form">
+                            <div class="form-row">
+                                <div class="form-group" style="flex: 2;">
+                                    <label>Nom du cours</label>
+                                    <input type="text" id="course-name" class="form-control" placeholder="Ex: Mathématiques" required>
+                                </div>
+                                <div class="form-group" style="flex: 1;">
+                                    <label>Cote maximale</label>
+                                    <input type="number" id="course-max-grade" class="form-control" placeholder="Ex: 20" min="1" max="100" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="align-self: flex-end;">Créer le cours</button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="card">
+                        <h4>Mes cours</h4>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Nom du cours</th>
+                                        <th>Cote maximale</th>
+                                        <th>Date de création</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="courses-table-body">
+                                    <!-- Les cours seront chargés ici dynamiquement -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="card grades-table">
+                        <h4>Tableau des cotes - <span id="current-period-title">1ère P</span></h4>
+                        
+                        <div class="table-container">
+                            <table id="grades-table">
+                                <thead id="grades-table-header">
+                                    <!-- L'en-tête sera généré dynamiquement -->
+                                </thead>
+                                <tbody id="grades-table-body">
+                                    <!-- Les cotes seront chargées ici dynamiquement -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                            <div class="export-buttons">
+                                <button id="export-excel-btn" class="btn btn-success export-btn">
+                                    <i class="fas fa-file-excel"></i> Exporter Excel
+                                </button>
+                                <button id="export-word-btn" class="btn btn-primary export-btn">
+                                    <i class="fas fa-file-word"></i> Exporter Word
+                                </button>
+                                <button id="export-pdf-btn" class="btn btn-danger export-btn">
+                                    <i class="fas fa-file-pdf"></i> Exporter PDF
+                                </button>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                <button id="sort-grades-btn" class="btn btn-secondary">Classer par pourcentage</button>
+                                <button id="publish-grades-btn" class="btn btn-info">Publier aux parents</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Page: Devoirs -->
+                <div id="homework-page" class="page">
+                    <div class="card">
+                        <h4>Gestion des Devoirs</h4>
+                        
+                        <!-- Formulaire d'ajout de devoir -->
+                        <div class="card" style="background: #f8f9fa;">
+                            <h5>Créer un nouveau devoir</h5>
+                            <form id="homework-form">
+                                <div class="form-row">
+                                    <div class="form-group" style="flex: 1;">
+                                        <label>Classe</label>
+                                        <select id="homework-class" class="form-control" required>
+                                            <option value="">-- Choisir une classe --</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group" style="flex: 2;">
+                                        <label>Matière</label>
+                                        <input type="text" id="homework-subject" class="form-control" placeholder="Ex: Mathématiques" required>
+                                    </div>
+                                    <div class="form-group" style="flex: 1;">
+                                        <label>Date de rendu</label>
+                                        <input type="date" id="homework-due-date" class="form-control" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Titre du devoir</label>
+                                    <input type="text" id="homework-title" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Description du devoir</label>
+                                    <textarea id="homework-description" class="form-control" rows="3" required></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label>Fichier du devoir (optionnel)</label>
+                                    <div class="file-upload" id="homework-file-upload">
+                                        <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; color: #ccc;"></i>
+                                        <p>Glissez-déposez un fichier ici ou cliquez pour sélectionner</p>
+                                        <input type="file" id="homework-file" class="file-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                                        <button type="button" id="homework-file-btn" class="btn btn-secondary">Sélectionner un fichier</button>
+                                    </div>
+                                    <div id="homework-file-preview"></div>
+                                </div>
+                                <button type="button" id="add-homework-btn" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane"></i> Publier le Devoir
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <!-- Liste des devoirs -->
+                        <div style="margin-top: 2rem;">
+                            <h5>Devoirs assignés</h5>
+                            <div id="homework-list-container"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Page: Profil -->
+                <div id="profile-page" class="page">
+                    <div class="card">
+                        <h4>Mon Profil</h4>
+                        <div class="form-row">
+                            <div class="form-group" style="flex: 1;">
+                                <div class="photo-upload">
+                                    <div class="photo-placeholder" id="profile-photo-preview">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <input type="file" id="profile-photo" class="file-input" accept="image/*">
+                                    <button type="button" class="upload-btn" onclick="document.getElementById('profile-photo').click()">
+                                        <i class="fas fa-upload"></i> Changer la photo
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-group" style="flex: 2;">
+                                <div class="form-row">
+                                    <div class="form-group" style="flex: 1;">
+                                        <label>Matricule</label>
+                                        <input type="text" id="profile-matricule" class="form-control" readonly>
+                                    </div>
+                                    <div class="form-group" style="flex: 1;">
+                                        <label>Nom Complet</label>
+                                        <input type="text" id="profile-name" class="form-control" readonly>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group" style="flex: 1;">
+                                        <label>Date de Naissance</label>
+                                        <input type="text" id="profile-birthdate" class="form-control" readonly>
+                                    </div>
+                                    <div class="form-group" style="flex: 1;">
+                                        <label>Téléphone</label>
+                                        <input type="tel" id="profile-phone" class="form-control">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Adresse</label>
+                                    <input type="text" id="profile-address" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label>Classes gérées</label>
+                                    <input type="text" id="profile-classes" class="form-control" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label>Date d'inscription</label>
+                                    <input type="text" id="profile-created" class="form-control" readonly>
+                                </div>
+                                <button id="update-profile-btn" class="btn btn-primary">Mettre à jour le profil</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Modal pour les détails de l'élève -->
+    <div id="student-details-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Détails de l'élève</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div id="student-details-content">
+                <!-- Contenu généré dynamiquement -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal pour modifier le CM -->
+    <div id="cm-edit-modal" class="modal hidden">
+        <div class="modal-content modal-cm-edit">
+            <div class="modal-header">
+                <h3>Modifier la Cote Maximale (CM)</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div id="cm-edit-content">
+                <!-- Contenu généré dynamiquement -->
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // 1. INITIALISATION DE FIREBASE
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword, updatePassword } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs, query, where, addDoc, serverTimestamp, doc, updateDoc, getDoc, setDoc, orderBy, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+
+        // CONFIGURATION FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyBn7VIddclO7KtrXb5sibCr9SjVLjOy-qI",
+            authDomain: "theo1d.firebaseapp.com",
+            projectId: "theo1d",
+            storageBucket: "theo1d.firebasestorage.app",
+            messagingSenderId: "269629842962",
+            appId: "1:269629842962:web:a80a12b04448fe1e595acb",
+            measurementId: "G-TNSG1XFMDZ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // 2. VARIABLES GLOBALES
+        let currentTeacher = null;
+        let teacherClasses = [];
+        let teacherStudents = [];
+        let teacherCourses = [];
+        let profilePhotoFile = null;
+        let allPeriodsData = {}; // Stocke toutes les données par période
+        let currentPeriod = '1ère P'; // Période par défaut
+        const allPeriods = ['1ère P', '2ème P', 'Examen S1', 'Total S1', '3ème P', '4ème P', 'Examen S2', 'Total S2', 'Total Général'];
+        let periodCM = {}; // Stocke les CM par période et par cours
+
+        // 3. FONCTIONS D'AUTHENTIFICATION
+        document.getElementById('show-activation').addEventListener('click', () => {
+            document.getElementById('login-form-container').classList.add('hidden');
+            document.getElementById('activation-form-container').classList.remove('hidden');
+        });
+
+        document.getElementById('show-login').addEventListener('click', () => {
+            document.getElementById('activation-form-container').classList.add('hidden');
+            document.getElementById('login-form-container').classList.remove('hidden');
+        });
+
+        function showAlert(message, type = 'error', elementId = null) {
+            let alertElement;
+            
+            if (elementId) {
+                alertElement = document.getElementById(elementId);
+            } else {
+                alertElement = document.getElementById('global-alert');
+            }
+            
+            alertElement.textContent = message;
+            alertElement.className = `alert alert-${type}`;
+            alertElement.classList.remove('hidden');
+            
+            setTimeout(() => {
+                alertElement.classList.add('hidden');
+            }, 5000);
+        }
+
+        document.getElementById('activation-form-element').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const matricule = document.getElementById('activation-matricule').value;
+            const password = document.getElementById('activation-password').value;
+            const confirmPassword = document.getElementById('activation-confirm-password').value;
+            
+            if (password !== confirmPassword) {
+                showAlert("Les mots de passe ne correspondent pas", "error", "activation-alert");
+                return;
+            }
+            
+            if (password.length < 6) {
+                showAlert("Le mot de passe doit contenir au moins 6 caractères", "error", "activation-alert");
+                return;
+            }
+            
+            try {
+                const teacherQuery = query(collection(db, 'primary_teachers'), where('matricule', '==', matricule));
+                const teacherSnapshot = await getDocs(teacherQuery);
+                
+                if (teacherSnapshot.empty) {
+                    showAlert("Matricule non trouvé. Vérifiez votre matricule ou contactez le secrétariat.", "error", "activation-alert");
+                    return;
+                }
+                
+                const teacherDoc = teacherSnapshot.docs[0];
+                const teacherData = teacherDoc.data();
+                
+                if (teacherData.accountActivated) {
+                    showAlert("Ce compte est déjà activé. Veuillez vous connecter.", "error", "activation-alert");
+                    return;
+                }
+                
+                const email = `${matricule}@cs-lacolombe.prim`;
+                
+                try {
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    const user = userCredential.user;
+                    
+                    await updateDoc(doc(db, 'primary_teachers', teacherDoc.id), {
+                        uid: user.uid,
+                        accountActivated: true,
+                        activatedAt: serverTimestamp(),
+                        email: email
+                    });
+                    
+                    showAlert("Compte activé avec succès! Vous pouvez maintenant vous connecter.", "success", "activation-alert");
+                    document.getElementById('activation-form-element').reset();
+                    document.getElementById('activation-form-container').classList.add('hidden');
+                    document.getElementById('login-form-container').classList.remove('hidden');
+                    
+                } catch (authError) {
+                    console.error("Erreur création compte Firebase:", authError);
+                    
+                    if (authError.code === 'auth/email-already-in-use') {
+                        showAlert("Ce compte est déjà activé. Veuillez vous connecter.", "error", "activation-alert");
+                    } else {
+                        showAlert("Erreur lors de l'activation du compte: " + authError.message, "error", "activation-alert");
+                    }
+                }
+                
+            } catch (error) {
+                console.error("Erreur activation compte:", error);
+                showAlert("Erreur lors de l'activation: " + error.message, "error", "activation-alert");
+            }
+        });
+
+        document.getElementById('login-form-element').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const matricule = document.getElementById('login-matricule').value;
+            const password = document.getElementById('login-password').value;
+            
+            try {
+                const email = `${matricule}@cs-lacolombe.prim`;
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                
+                const teacherQuery = query(collection(db, 'primary_teachers'), where('uid', '==', user.uid));
+                const teacherSnapshot = await getDocs(teacherQuery);
+                
+                if (teacherSnapshot.empty) {
+                    showAlert("Compte enseignant non trouvé. Contactez le secrétariat.", "error", "login-alert");
+                    await signOut(auth);
+                    return;
+                }
+                
+                const teacherDoc = teacherSnapshot.docs[0];
+                currentTeacher = { id: teacherDoc.id, ...teacherDoc.data() };
+                
+                document.getElementById('login-overlay').classList.add('hidden');
+                document.getElementById('teacher-app').classList.remove('hidden');
+                initializeTeacherApp();
+                
+            } catch (error) {
+                console.error("Erreur connexion:", error);
+                
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    showAlert("Matricule ou mot de passe incorrect", "error", "login-alert");
+                } else {
+                    showAlert("Erreur de connexion: " + error.message, "error", "login-alert");
+                }
+            }
+        });
+
+        // 4. INITIALISATION DE L'APPLICATION ENSEIGNANT
+        function initializeTeacherApp() {
+            updateTeacherProfileDisplay();
+            loadTeacherClasses();
+            loadTeacherStudents();
+            loadTeacherCourses();
+            loadDashboardStats();
+            setupNavigation();
+            setupEventListeners();
+            initializeHomeworkManagement();
+            initializePeriodManagement();
+        }
+
+        function updateTeacherProfileDisplay() {
+            document.getElementById('teacher-name').textContent = currentTeacher.fullName;
+            const photoContainer = document.getElementById('teacher-photo-container');
+            if (currentTeacher.photoURL) {
+                photoContainer.innerHTML = `<img src="${currentTeacher.photoURL}" class="teacher-photo" alt="Photo de profil">`;
+            } else {
+                photoContainer.innerHTML = `<div class="teacher-photo-placeholder"><i class="fas fa-user-tie"></i></div>`;
+            }
+        }
+
+        async function loadTeacherClasses() {
+            try {
+                teacherClasses = currentTeacher.classes || [];
+                const classInfoElement = document.getElementById('teacher-class-info');
+                const classNameElement = document.getElementById('class-name-display');
+                
+                if (teacherClasses.length > 0) {
+                    classInfoElement.textContent = `Vous gérez la classe: ${teacherClasses.join(', ')}`;
+                    classNameElement.textContent = `Classe: ${teacherClasses.join(', ')}`;
+                } else {
+                    classInfoElement.textContent = "Aucune classe assignée. Contactez le secrétariat.";
+                    classNameElement.textContent = "Aucune classe assignée";
+                }
+                
+                const homeworkClassSelect = document.getElementById('homework-class');
+                homeworkClassSelect.innerHTML = '<option value="">-- Choisir une classe --</option>';
+                teacherClasses.forEach(className => {
+                    homeworkClassSelect.innerHTML += `<option value="${className}">${className}</option>`;
+                });
+                
+            } catch (error) {
+                console.error("Erreur chargement classes:", error);
+            }
+        }
+
+        async function loadTeacherStudents() {
+            try {
+                teacherStudents = [];
+                
+                if (teacherClasses.length === 0) return;
+                
+                for (const className of teacherClasses) {
+                    const studentsQuery = query(
+                        collection(db, 'primary_students'), 
+                        where('class', '==', className),
+                        where('status', '==', 'active')
+                    );
+                    
+                    const studentsSnapshot = await getDocs(studentsQuery);
+                    
+                    studentsSnapshot.forEach(doc => {
+                        teacherStudents.push({ id: doc.id, ...doc.data() });
+                    });
+                }
+                
+                updateStudentsTable();
+                
+            } catch (error) {
+                console.error("Erreur chargement élèves:", error);
+            }
+        }
+
+        function updateStudentsTable() {
+            const tableBody = document.getElementById('students-table-body');
+            
+            if (teacherStudents.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Aucun élève dans votre classe</td></tr>';
+                return;
+            }
+            
+            let html = '';
+            teacherStudents.forEach((student, index) => {
+                const photoHTML = student.photoURL 
+                    ? `<img src="${student.photoURL}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">`
+                    : '<div style="width: 40px; height: 40px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center;"><i class="fas fa-user"></i></div>';
+                
+                html += `
+                    <tr>
+                        <td>${photoHTML}</td>
+                        <td>${student.matricule}</td>
+                        <td>${student.fullName}</td>
+                        <td>${student.birthdate}</td>
+                        <td>${student.gender === 'M' ? 'Masculin' : 'Féminin'}</td>
+                        <td>
+                            <button class="btn btn-primary" onclick="viewStudentDetails('${student.matricule}')">Détails</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tableBody.innerHTML = html;
+        }
+
+        async function loadTeacherCourses() {
+            try {
+                const coursesQuery = query(
+                    collection(db, 'primary_courses'),
+                    where('teacherId', '==', currentTeacher.id)
+                );
+                
+                const coursesSnapshot = await getDocs(coursesQuery);
+                teacherCourses = [];
+                
+                coursesSnapshot.forEach(doc => {
+                    teacherCourses.push({ id: doc.id, ...doc.data() });
+                });
+                
+                updateCoursesTable();
+                await loadPeriodCM(); // Charger les CM par période
+                await loadAllPeriodsGrades();
+                updateGradesTable();
+                
+            } catch (error) {
+                console.error("Erreur chargement cours:", error);
+            }
+        }
+
+        async function loadPeriodCM() {
+            try {
+                periodCM = {};
+                
+                // Initialiser les CM par période
+                for (const period of allPeriods) {
+                    if (!period.includes('Total') && period !== 'Total Général') {
+                        periodCM[period] = {};
+                        
+                        for (const course of teacherCourses) {
+                            // Charger le CM spécifique à la période depuis Firestore
+                            const cmQuery = query(
+                                collection(db, 'primary_period_cm'),
+                                where('courseId', '==', course.id),
+                                where('period', '==', period),
+                                where('teacherId', '==', currentTeacher.id)
+                            );
+                            
+                            const cmSnapshot = await getDocs(cmQuery);
+                            
+                            if (!cmSnapshot.empty) {
+                                const cmDoc = cmSnapshot.docs[0];
+                                const cmData = cmDoc.data();
+                                periodCM[period][course.id] = cmData.cmValue;
+                            } else {
+                                // Utiliser le CM par défaut du cours
+                                periodCM[period][course.id] = course.maxGrade;
+                            }
+                        }
+                    }
+                }
+                
+            } catch (error) {
+                console.error("Erreur chargement CM par période:", error);
+                // En cas d'erreur, initialiser avec les valeurs par défaut
+                initializeDefaultCM();
+            }
+        }
+
+        function initializeDefaultCM() {
+            periodCM = {};
+            for (const period of allPeriods) {
+                if (!period.includes('Total') && period !== 'Total Général') {
+                    periodCM[period] = {};
+                    for (const course of teacherCourses) {
+                        periodCM[period][course.id] = course.maxGrade;
+                    }
+                }
+            }
+        }
+
+        async function savePeriodCM(courseId, period, cmValue) {
+            try {
+                // Vérifier si un enregistrement existe déjà
+                const cmQuery = query(
+                    collection(db, 'primary_period_cm'),
+                    where('courseId', '==', courseId),
+                    where('period', '==', period),
+                    where('teacherId', '==', currentTeacher.id)
+                );
+                
+                const cmSnapshot = await getDocs(cmQuery);
+                
+                if (!cmSnapshot.empty) {
+                    // Mettre à jour l'enregistrement existant
+                    const cmDoc = cmSnapshot.docs[0];
+                    await updateDoc(doc(db, 'primary_period_cm', cmDoc.id), {
+                        cmValue: parseFloat(cmValue),
+                        updatedAt: serverTimestamp()
+                    });
+                } else {
+                    // Créer un nouvel enregistrement
+                    await addDoc(collection(db, 'primary_period_cm'), {
+                        courseId: courseId,
+                        period: period,
+                        teacherId: currentTeacher.id,
+                        cmValue: parseFloat(cmValue),
+                        createdAt: serverTimestamp(),
+                        updatedAt: serverTimestamp()
+                    });
+                }
+                
+                // Mettre à jour les données locales
+                if (!periodCM[period]) {
+                    periodCM[period] = {};
+                }
+                periodCM[period][courseId] = parseFloat(cmValue);
+                
+                // Recalculer les totaux
+                calculateTotalPeriods();
+                updateGradesTable();
+                loadDashboardStats();
+                
+                showAlert(`CM modifié avec succès pour la période ${period}`, 'success');
+                
+            } catch (error) {
+                console.error("Erreur sauvegarde CM:", error);
+                throw error;
+            }
+        }
+
+        async function loadAllPeriodsGrades() {
+            try {
+                allPeriodsData = {};
+                
+                // Initialiser les données pour chaque période
+                for (const period of allPeriods) {
+                    allPeriodsData[period] = {};
+                    
+                    // Pour les périodes de total, on ne charge pas de données depuis Firestore
+                    // Elles seront calculées à partir des autres périodes
+                    if (!period.includes('Total') && period !== 'Total Général') {
+                        for (const student of teacherStudents) {
+                            const studentId = student.matricule;
+                            allPeriodsData[period][studentId] = {};
+                            
+                            for (const course of teacherCourses) {
+                                const gradeQuery = query(
+                                    collection(db, 'primary_grades'),
+                                    where('courseId', '==', course.id),
+                                    where('studentId', '==', studentId),
+                                    where('period', '==', period)
+                                );
+                                
+                                const gradeSnapshot = await getDocs(gradeQuery);
+                                
+                                if (!gradeSnapshot.empty) {
+                                    const gradeDoc = gradeSnapshot.docs[0];
+                                    const gradeData = gradeDoc.data();
+                                    allPeriodsData[period][studentId][course.id] = {
+                                        grade: gradeData.obtainedGrade,
+                                        published: gradeData.published || false,
+                                        publishedAt: gradeData.publishedAt
+                                    };
+                                } else {
+                                    allPeriodsData[period][studentId][course.id] = {
+                                        grade: 0,
+                                        published: false
+                                    };
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Calculer les périodes de total
+                calculateTotalPeriods();
+                
+            } catch (error) {
+                console.error("Erreur chargement cotes:", error);
+            }
+        }
+
+        function calculateTotalPeriods() {
+            // Calculer Total S1
+            calculatePeriodTotal('1ère P', '2ème P', 'Examen S1', 'Total S1');
+            
+            // Calculer Total S2
+            calculatePeriodTotal('3ème P', '4ème P', 'Examen S2', 'Total S2');
+            
+            // Calculer Total Général
+            calculateGeneralTotal();
+        }
+
+        function calculatePeriodTotal(period1, period2, examPeriod, totalPeriod) {
+            allPeriodsData[totalPeriod] = {};
+            
+            for (const student of teacherStudents) {
+                const studentId = student.matricule;
+                allPeriodsData[totalPeriod][studentId] = {};
+                
+                for (const course of teacherCourses) {
+                    let totalCM = 0;
+                    let totalCO = 0;
+                    
+                    // Ajouter les CM et CO de chaque période
+                    if (allPeriodsData[period1] && allPeriodsData[period1][studentId] && allPeriodsData[period1][studentId][course.id]) {
+                        totalCM += getCMForPeriod(period1, course.id);
+                        totalCO += allPeriodsData[period1][studentId][course.id].grade;
+                    }
+                    
+                    if (allPeriodsData[period2] && allPeriodsData[period2][studentId] && allPeriodsData[period2][studentId][course.id]) {
+                        totalCM += getCMForPeriod(period2, course.id);
+                        totalCO += allPeriodsData[period2][studentId][course.id].grade;
+                    }
+                    
+                    if (allPeriodsData[examPeriod] && allPeriodsData[examPeriod][studentId] && allPeriodsData[examPeriod][studentId][course.id]) {
+                        totalCM += getCMForPeriod(examPeriod, course.id);
+                        totalCO += allPeriodsData[examPeriod][studentId][course.id].grade;
+                    }
+                    
+                    allPeriodsData[totalPeriod][studentId][course.id] = {
+                        grade: totalCO,
+                        published: false,
+                        totalCM: totalCM
+                    };
+                }
+            }
+        }
+
+        function getCMForPeriod(period, courseId) {
+            if (period.includes('Total') || period === 'Total Général') {
+                return 0; // Pour les périodes de total, on utilise le totalCM calculé
+            }
+            return periodCM[period] && periodCM[period][courseId] ? periodCM[period][courseId] : 0;
+        }
+
+        function calculateGeneralTotal() {
+            const totalPeriod = 'Total Général';
+            const totalS1 = 'Total S1';
+            const totalS2 = 'Total S2';
+            
+            allPeriodsData[totalPeriod] = {};
+            
+            for (const student of teacherStudents) {
+                const studentId = student.matricule;
+                allPeriodsData[totalPeriod][studentId] = {};
+                
+                for (const course of teacherCourses) {
+                    let totalCM = 0;
+                    let totalCO = 0;
+                    
+                    // Ajouter les CM et CO de Total S1
+                    if (allPeriodsData[totalS1] && allPeriodsData[totalS1][studentId] && allPeriodsData[totalS1][studentId][course.id]) {
+                        totalCM += allPeriodsData[totalS1][studentId][course.id].totalCM || 0;
+                        totalCO += allPeriodsData[totalS1][studentId][course.id].grade;
+                    }
+                    
+                    // Ajouter les CM et CO de Total S2
+                    if (allPeriodsData[totalS2] && allPeriodsData[totalS2][studentId] && allPeriodsData[totalS2][studentId][course.id]) {
+                        totalCM += allPeriodsData[totalS2][studentId][course.id].totalCM || 0;
+                        totalCO += allPeriodsData[totalS2][studentId][course.id].grade;
+                    }
+                    
+                    allPeriodsData[totalPeriod][studentId][course.id] = {
+                        grade: totalCO,
+                        published: false,
+                        totalCM: totalCM
+                    };
+                }
+            }
+        }
+
+        function updateCoursesTable() {
+            const tableBody = document.getElementById('courses-table-body');
+            
+            if (teacherCourses.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Aucun cours créé</td></tr>';
+                return;
+            }
+            
+            let html = '';
+            teacherCourses.forEach(course => {
+                html += `
+                    <tr>
+                        <td>${course.name}</td>
+                        <td>${course.maxGrade}</td>
+                        <td>${formatDate(course.createdAt?.toDate())}</td>
+                        <td>
+                            <button class="btn btn-danger" onclick="deleteCourse('${course.id}')">Supprimer</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tableBody.innerHTML = html;
+        }
+
+        async function loadDashboardStats() {
+            try {
+                document.getElementById('total-students').textContent = teacherStudents.length;
+                document.getElementById('total-courses').textContent = teacherCourses.length;
+                
+                // Calculer la moyenne de la classe pour la période active
+                let totalPercentage = 0;
+                let studentCount = 0;
+                
+                const periodData = allPeriodsData[currentPeriod];
+                
+                for (const student of teacherStudents) {
+                    const studentId = student.matricule;
+                    if (periodData && periodData[studentId]) {
+                        let totalMax = 0;
+                        let totalObtained = 0;
+                        
+                        for (const course of teacherCourses) {
+                            const courseGrade = periodData[studentId][course.id];
+                            if (courseGrade) {
+                                if (currentPeriod.includes('Total') || currentPeriod === 'Total Général') {
+                                    totalMax += courseGrade.totalCM || 0;
+                                } else {
+                                    totalMax += getCMForPeriod(currentPeriod, course.id);
+                                }
+                                totalObtained += courseGrade.grade || 0;
+                            }
+                        }
+                        
+                        if (totalMax > 0) {
+                            totalPercentage += (totalObtained / totalMax) * 100;
+                            studentCount++;
+                        }
+                    }
+                }
+                
+                const averageGrade = studentCount > 0 ? (totalPercentage / studentCount).toFixed(2) : 0;
+                document.getElementById('average-grade').textContent = `${averageGrade}%`;
+                
+                loadRecentActivities();
+                
+            } catch (error) {
+                console.error("Erreur chargement stats:", error);
+            }
+        }
+
+        async function loadRecentActivities() {
+            const activitiesEl = document.getElementById('recent-activities');
+            
+            try {
+                const gradesQuery = query(
+                    collection(db, 'primary_grades'),
+                    where('teacherId', '==', currentTeacher.id),
+                    orderBy('createdAt', 'desc')
+                );
+                
+                const gradesSnapshot = await getDocs(gradesQuery);
+                
+                let activitiesHTML = '';
+                
+                if (gradesSnapshot.empty) {
+                    activitiesHTML = '<p>Aucune activité récente</p>';
+                } else {
+                    let count = 0;
+                    gradesSnapshot.forEach(doc => {
+                        if (count >= 5) return;
+                        const data = doc.data();
+                        activitiesHTML += `
+                            <div style="padding: 10px 0; border-bottom: 1px solid #eee;">
+                                <i class="fas fa-chart-bar" style="color: var(--success);"></i>
+                                <span>Cote enregistrée pour ${data.studentName} (${data.period})</span>
+                                <small style="color: #666; display: block;">${formatDate(data.createdAt?.toDate())}</small>
+                            </div>
+                        `;
+                        count++;
+                    });
+                }
+                
+                activitiesEl.innerHTML = activitiesHTML;
+                
+            } catch (error) {
+                console.error("Erreur chargement activités:", error);
+                activitiesEl.innerHTML = '<p>Erreur de chargement</p>';
+            }
+        }
+
+        // 5. GESTION DES PÉRIODES
+        function initializePeriodManagement() {
+            const periodButtons = document.querySelectorAll('.period-btn');
+            periodButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Retirer la classe active de tous les boutons
+                    periodButtons.forEach(b => b.classList.remove('active'));
+                    // Ajouter la classe active au bouton cliqué
+                    btn.classList.add('active');
+                    // Mettre à jour la période courante
+                    currentPeriod = btn.dataset.period;
+                    document.getElementById('selected-period-display').textContent = currentPeriod;
+                    document.getElementById('current-period-title').textContent = currentPeriod;
+                    
+                    // Recharger le tableau des cotes pour cette période
+                    updateGradesTable();
+                    loadDashboardStats();
+                });
+            });
+            
+            // Activer le premier bouton par défaut
+            periodButtons[0].classList.add('active');
+            
+            // Configuration des boutons d'export
+            document.getElementById('export-excel-btn').addEventListener('click', exportToExcel);
+            document.getElementById('export-word-btn').addEventListener('click', exportToWord);
+            document.getElementById('export-pdf-btn').addEventListener('click', exportToPDF);
+        }
+
+        // 6. GESTION DES COURS ET DES COTES
+        document.getElementById('course-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const courseName = document.getElementById('course-name').value;
+            const maxGrade = parseInt(document.getElementById('course-max-grade').value);
+            
+            try {
+                const courseData = {
+                    name: courseName,
+                    maxGrade: maxGrade,
+                    teacherId: currentTeacher.id,
+                    teacherName: currentTeacher.fullName,
+                    createdAt: serverTimestamp()
+                };
+                
+                await addDoc(collection(db, 'primary_courses'), courseData);
+                
+                showAlert(`Cours "${courseName}" créé avec succès!`, 'success');
+                document.getElementById('course-form').reset();
+                await loadTeacherCourses();
+                
+            } catch (error) {
+                console.error("Erreur création cours:", error);
+                showAlert("Erreur lors de la création du cours: " + error.message, 'error');
+            }
+        });
+
+        function updateGradesTable() {
+            const tableHeader = document.getElementById('grades-table-header');
+            const tableBody = document.getElementById('grades-table-body');
+            
+            if (teacherStudents.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="' + (teacherCourses.length + 4) + '" style="text-align: center;">Aucun élève dans votre classe</td></tr>';
+                return;
+            }
+            
+            if (teacherCourses.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Aucun cours créé</td></tr>';
+                return;
+            }
+            
+            // Générer l'en-tête du tableau
+            let headerHTML = '<tr>';
+            headerHTML += '<th rowspan="2">N°</th>';
+            headerHTML += '<th rowspan="2">Nom Complet</th>';
+            
+            teacherCourses.forEach(course => {
+                headerHTML += `<th colspan="2">${course.name}</th>`;
+            });
+            
+            if (currentPeriod.includes('Total') || currentPeriod === 'Total Général') {
+                headerHTML += '<th rowspan="2">Total CM</th>';
+                headerHTML += '<th rowspan="2">Total CO</th>';
+                headerHTML += '<th rowspan="2">Pourcentage</th>';
+            } else {
+                headerHTML += '<th rowspan="2">Total CM</th>';
+                headerHTML += '<th rowspan="2">Total CO</th>';
+                headerHTML += '<th rowspan="2">Pourcentage</th>';
+                headerHTML += '<th rowspan="2">Statut</th>';
+            }
+            
+            headerHTML += '</tr>';
+            
+            // Deuxième ligne d'en-tête
+            headerHTML += '<tr>';
+            teacherCourses.forEach(course => {
+                headerHTML += `<th>CM</th>`;
+                headerHTML += `<th>CO</th>`;
+            });
+            headerHTML += '</tr>';
+            
+            tableHeader.innerHTML = headerHTML;
+            
+            // Générer le corps du tableau
+            let bodyHTML = '';
+            const periodData = allPeriodsData[currentPeriod];
+            
+            // Créer un tableau d'élèves avec leurs totaux pour le tri
+            const studentsWithTotals = teacherStudents.map(student => {
+                const studentId = student.matricule;
+                let totalCM = 0;
+                let totalCO = 0;
+                let allPublished = true;
+                
+                if (periodData && periodData[studentId]) {
+                    teacherCourses.forEach(course => {
+                        const courseGrade = periodData[studentId][course.id];
+                        if (courseGrade) {
+                            if (currentPeriod.includes('Total') || currentPeriod === 'Total Général') {
+                                totalCM += courseGrade.totalCM || 0;
+                            } else {
+                                totalCM += getCMForPeriod(currentPeriod, course.id);
+                            }
+                            totalCO += courseGrade.grade || 0;
+                            
+                            if (!courseGrade.published) {
+                                allPublished = false;
+                            }
+                        }
+                    });
+                }
+                
+                const percentage = totalCM > 0 ? (totalCO / totalCM * 100) : 0;
+                
+                return {
+                    student,
+                    totalCM,
+                    totalCO,
+                    percentage,
+                    allPublished
+                };
+            });
+            
+            // Trier les élèves par pourcentage
+            studentsWithTotals.sort((a, b) => b.percentage - a.percentage);
+            
+            // Générer les lignes du tableau
+            studentsWithTotals.forEach((item, index) => {
+                const { student, totalCM, totalCO, percentage, allPublished } = item;
+                const studentId = student.matricule;
+                
+                bodyHTML += '<tr>';
+                bodyHTML += `<td>${index + 1}</td>`;
+                bodyHTML += `<td>${student.fullName}</td>`;
+                
+                // Colonnes pour chaque cours
+                teacherCourses.forEach(course => {
+                    const courseGrade = periodData && periodData[studentId] ? periodData[studentId][course.id] : null;
+                    const gradeValue = courseGrade ? courseGrade.grade : 0;
+                    
+                    if (currentPeriod.includes('Total') || currentPeriod === 'Total Général') {
+                        bodyHTML += `<td>${courseGrade ? courseGrade.totalCM || 0 : 0}</td>`;
+                        bodyHTML += `<td>${gradeValue.toFixed(2)}</td>`;
+                    } else {
+                        const currentCM = getCMForPeriod(currentPeriod, course.id);
+                        bodyHTML += `<td class="cm-editable" onclick="editCM('${course.id}', '${course.name}', '${currentPeriod}', ${currentCM})">
+                            <span class="cm-display">${currentCM}</span>
+                        </td>`;
+                        bodyHTML += `<td>
+                            <input type="number" 
+                                   value="${gradeValue}" 
+                                   min="0" 
+                                   max="${currentCM}" 
+                                   step="0.5"
+                                   class="${courseGrade && courseGrade.published ? 'published' : 'editable'}"
+                                   onchange="updateStudentGrade('${course.id}', '${studentId}', '${student.fullName}', this.value, '${currentPeriod}', ${currentCM})">
+                        </td>`;
+                    }
+                });
+                
+                bodyHTML += `<td>${totalCM.toFixed(2)}</td>`;
+                bodyHTML += `<td>${totalCO.toFixed(2)}</td>`;
+                bodyHTML += `<td>${percentage.toFixed(2)}%</td>`;
+                
+                if (!(currentPeriod.includes('Total') || currentPeriod === 'Total Général')) {
+                    bodyHTML += `<td>
+                        ${allPublished ? 
+                            '<span class="badge badge-success">Publié</span>' : 
+                            '<span class="badge badge-warning">Non publié</span>'
+                        }
+                    </td>`;
+                }
+                
+                bodyHTML += '</tr>';
+            });
+            
+            tableBody.innerHTML = bodyHTML;
+        }
+
+        window.editCM = (courseId, courseName, period, currentCM) => {
+            if (period.includes('Total') || period === 'Total Général') {
+                showAlert("Les CM des périodes de total ne sont pas modifiables directement", "warning");
+                return;
+            }
+            
+            const modalContent = document.getElementById('cm-edit-content');
+            modalContent.innerHTML = `
+                <div class="form-group">
+                    <label>Cours</label>
+                    <div class="cm-value">${courseName}</div>
+                </div>
+                <div class="form-group">
+                    <label>Période</label>
+                    <div class="cm-value">${period}</div>
+                </div>
+                <div class="form-group">
+                    <label for="new-cm-value">Nouvelle Cote Maximale (CM)</label>
+                    <input type="number" id="new-cm-value" class="form-control" 
+                           value="${currentCM}" min="1" max="100" step="0.5" required>
+                    <small style="color: #666;">Valeur entre 1 et 100</small>
+                </div>
+                <div class="form-group">
+                    <label>CM par défaut du cours</label>
+                    <div class="cm-value">${getCourseDefaultCM(courseId)}</div>
+                </div>
+                <div style="margin-top: 1.5rem; display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" id="cancel-cm-edit">Annuler</button>
+                    <button type="button" class="btn btn-primary" id="save-cm-edit">Enregistrer</button>
+                </div>
+            `;
+            
+            document.getElementById('cm-edit-modal').classList.remove('hidden');
+            
+            document.getElementById('cancel-cm-edit').addEventListener('click', () => {
+                document.getElementById('cm-edit-modal').classList.add('hidden');
+            });
+            
+            document.getElementById('save-cm-edit').addEventListener('click', async () => {
+                const newCM = document.getElementById('new-cm-value').value;
+                
+                if (!newCM || newCM < 1 || newCM > 100) {
+                    showAlert("Veuillez entrer une valeur valide entre 1 et 100", "error");
+                    return;
+                }
+                
+                try {
+                    await savePeriodCM(courseId, period, newCM);
+                    document.getElementById('cm-edit-modal').classList.add('hidden');
+                } catch (error) {
+                    showAlert("Erreur lors de la modification du CM: " + error.message, "error");
+                }
+            });
+        };
+
+        function getCourseDefaultCM(courseId) {
+            const course = teacherCourses.find(c => c.id === courseId);
+            return course ? course.maxGrade : 0;
+        }
+
+        window.updateStudentGrade = async (courseId, studentId, studentName, gradeValue, period, maxGrade) => {
+            try {
+                const grade = parseFloat(gradeValue);
+                
+                // Vérifier si la période est éditable
+                if (period.includes('Total') || period === 'Total Général') {
+                    showAlert("Les périodes de total ne sont pas directement modifiables", "error");
+                    return;
+                }
+                
+                // Vérifier que la cote ne dépasse pas le maximum
+                if (grade > maxGrade) {
+                    showAlert(`La cote ne peut pas dépasser ${maxGrade}`, "error");
+                    return;
+                }
+                
+                // Vérifier si une cote existe déjà pour cet élève, ce cours et cette période
+                const gradeQuery = query(
+                    collection(db, 'primary_grades'),
+                    where('courseId', '==', courseId),
+                    where('studentId', '==', studentId),
+                    where('period', '==', period)
+                );
+                
+                const gradeSnapshot = await getDocs(gradeQuery);
+                
+                if (gradeSnapshot.empty) {
+                    // Créer une nouvelle cote
+                    await addDoc(collection(db, 'primary_grades'), {
+                        courseId: courseId,
+                        studentId: studentId,
+                        studentName: studentName,
+                        obtainedGrade: grade,
+                        maxGrade: maxGrade,
+                        teacherId: currentTeacher.id,
+                        teacherName: currentTeacher.fullName,
+                        published: false,
+                        period: period,
+                        createdAt: serverTimestamp(),
+                        updatedAt: serverTimestamp()
+                    });
+                } else {
+                    // Mettre à jour la cote existante
+                    const gradeDoc = gradeSnapshot.docs[0];
+                    await updateDoc(doc(db, 'primary_grades', gradeDoc.id), {
+                        obtainedGrade: grade,
+                        maxGrade: maxGrade,
+                        updatedAt: serverTimestamp()
+                    });
+                }
+                
+                // Mettre à jour les données locales
+                if (!allPeriodsData[period][studentId]) {
+                    allPeriodsData[period][studentId] = {};
+                }
+                allPeriodsData[period][studentId][courseId] = {
+                    grade: grade,
+                    published: false
+                };
+                
+                // Recalculer les périodes de total
+                calculateTotalPeriods();
+                
+                // Mettre à jour l'affichage
+                updateGradesTable();
+                loadDashboardStats();
+                
+            } catch (error) {
+                console.error("Erreur mise à jour cote:", error);
+                showAlert("Erreur lors de la mise à jour de la cote: " + error.message, 'error');
+            }
+        };
+
+        document.getElementById('publish-grades-btn').addEventListener('click', async () => {
+            try {
+                const periodData = allPeriodsData[currentPeriod];
+                let publishedCount = 0;
+                
+                // Vérifier si la période est publiable
+                if (currentPeriod.includes('Total') || currentPeriod === 'Total Général') {
+                    showAlert("Les périodes de total ne sont pas directement publiables", "error");
+                    return;
+                }
+                
+                for (const student of teacherStudents) {
+                    const studentId = student.matricule;
+                    
+                    if (periodData && periodData[studentId]) {
+                        let studentGrades = [];
+                        
+                        for (const course of teacherCourses) {
+                            const courseGrade = periodData[studentId][course.id];
+                            if (courseGrade) {
+                                studentGrades.push({
+                                    courseName: course.name,
+                                    maxGrade: getCMForPeriod(currentPeriod, course.id),
+                                    obtainedGrade: courseGrade.grade,
+                                    courseId: course.id,
+                                    teacherName: currentTeacher.fullName,
+                                    period: currentPeriod
+                                });
+                                
+                                // Marquer la cote comme publiée
+                                const gradeQuery = query(
+                                    collection(db, 'primary_grades'),
+                                    where('courseId', '==', course.id),
+                                    where('studentId', '==', studentId),
+                                    where('period', '==', currentPeriod)
+                                );
+                                
+                                const gradeSnapshot = await getDocs(gradeQuery);
+                                
+                                if (!gradeSnapshot.empty) {
+                                    const gradeDoc = gradeSnapshot.docs[0];
+                                    await updateDoc(doc(db, 'primary_grades', gradeDoc.id), {
+                                        published: true,
+                                        publishedAt: serverTimestamp()
+                                    });
+                                    
+                                    // Mettre à jour les données locales
+                                    periodData[studentId][course.id].published = true;
+                                }
+                            }
+                        }
+                        
+                        if (studentGrades.length > 0) {
+                            const publishedGradeData = {
+                                studentId: studentId,
+                                studentName: student.fullName,
+                                studentClass: student.class,
+                                teacherId: currentTeacher.id,
+                                teacherName: currentTeacher.fullName,
+                                period: currentPeriod,
+                                grades: studentGrades,
+                                publishedAt: serverTimestamp()
+                            };
+                            
+                            await addDoc(collection(db, 'primary_published_grades'), publishedGradeData);
+                            publishedCount++;
+                        }
+                    }
+                }
+                
+                showAlert(`${publishedCount} élèves ont eu leurs cotes publiées pour la période ${currentPeriod}!`, 'success');
+                updateGradesTable();
+                
+            } catch (error) {
+                console.error("Erreur publication cotes:", error);
+                showAlert("Erreur lors de la publication des cotes: " + error.message, 'error');
+            }
+        });
+
+        document.getElementById('sort-grades-btn').addEventListener('click', () => {
+            updateGradesTable();
+        });
+
+        window.deleteCourse = async (courseId) => {
+            if (confirm("Êtes-vous sûr de vouloir supprimer ce cours ? Toutes les cotes associées seront également supprimées.")) {
+                try {
+                    await deleteDoc(doc(db, 'primary_courses', courseId));
+                    
+                    const gradesQuery = query(
+                        collection(db, 'primary_grades'),
+                        where('courseId', '==', courseId)
+                    );
+                    
+                    const gradesSnapshot = await getDocs(gradesQuery);
+                    
+                    const deletePromises = [];
+                    gradesSnapshot.forEach(doc => {
+                        deletePromises.push(deleteDoc(doc.ref));
+                    });
+                    
+                    await Promise.all(deletePromises);
+                    
+                    showAlert("Cours supprimé avec succès", 'success');
+                    await loadTeacherCourses();
+                    
+                } catch (error) {
+                    console.error("Erreur suppression cours:", error);
+                    showAlert("Erreur lors de la suppression du cours: " + error.message, 'error');
+                }
+            }
+        };
+
+        // 7. FONCTIONS D'EXPORT
+        async function exportToExcel() {
+            try {
+                const periodData = allPeriodsData[currentPeriod];
+                
+                // Préparer les données pour l'export
+                const exportData = [];
+                
+                // En-tête principal
+                const mainHeader = ['COMPLEXE SCOLAIRE LA COLOMBE', '', '', '', '', '', '', '', ''];
+                exportData.push(mainHeader);
+                
+                const titleHeader = [`TABLEAU DES COTES - ${currentPeriod}`, '', '', '', '', '', '', '', ''];
+                exportData.push(titleHeader);
+                
+                const infoHeader = [
+                    `Enseignant: ${currentTeacher.fullName}`,
+                    `Classe(s): ${teacherClasses.join(', ')}`,
+                    `Date: ${new Date().toLocaleDateString('fr-FR')}`,
+                    '', '', '', '', '', ''
+                ];
+                exportData.push(infoHeader);
+                
+                exportData.push([]); // Ligne vide
+                
+                // En-tête des colonnes
+                const header = ['N°', 'Nom Complet'];
+                teacherCourses.forEach(course => {
+                    header.push(`${course.name} (CM)`);
+                    header.push(`${course.name} (CO)`);
+                });
+                header.push('Total CM', 'Total CO', 'Pourcentage');
+                
+                exportData.push(header);
+                
+                // Données des élèves
+                teacherStudents.forEach((student, index) => {
+                    const studentId = student.matricule;
+                    const row = [index + 1, student.fullName];
+                    
+                    let totalCM = 0;
+                    let totalCO = 0;
+                    
+                    teacherCourses.forEach(course => {
+                        const courseGrade = periodData && periodData[studentId] ? periodData[studentId][course.id] : null;
+                        const gradeValue = courseGrade ? courseGrade.grade : 0;
+                        
+                        if (currentPeriod.includes('Total') || currentPeriod === 'Total Général') {
+                            const courseCM = courseGrade ? courseGrade.totalCM || 0 : 0;
+                            row.push(courseCM);
+                            row.push(gradeValue);
+                            totalCM += courseCM;
+                            totalCO += gradeValue;
+                        } else {
+                            const courseCM = getCMForPeriod(currentPeriod, course.id);
+                            row.push(courseCM);
+                            row.push(gradeValue);
+                            totalCM += courseCM;
+                            totalCO += gradeValue;
+                        }
+                    });
+                    
+                    row.push(totalCM.toFixed(2));
+                    row.push(totalCO.toFixed(2));
+                    row.push(totalCM > 0 ? `${(totalCO / totalCM * 100).toFixed(2)}%` : '0%');
+                    
+                    exportData.push(row);
+                });
+                
+                // Statistiques
+                exportData.push([]);
+                exportData.push(['STATISTIQUES', '', '', '', '', '', '', '', '']);
+                
+                let totalStudents = teacherStudents.length;
+                let averageClass = 0;
+                let totalClassCM = 0;
+                let totalClassCO = 0;
+                
+                teacherStudents.forEach(student => {
+                    const studentId = student.matricule;
+                    let studentCM = 0;
+                    let studentCO = 0;
+                    
+                    teacherCourses.forEach(course => {
+                        const courseGrade = periodData && periodData[studentId] ? periodData[studentId][course.id] : null;
+                        if (courseGrade) {
+                            if (currentPeriod.includes('Total') || currentPeriod === 'Total Général') {
+                                studentCM += courseGrade.totalCM || 0;
+                            } else {
+                                studentCM += getCMForPeriod(currentPeriod, course.id);
+                            }
+                            studentCO += courseGrade.grade || 0;
+                        }
+                    });
+                    
+                    totalClassCM += studentCM;
+                    totalClassCO += studentCO;
+                });
+                
+                averageClass = totalClassCM > 0 ? (totalClassCO / totalClassCM * 100).toFixed(2) : 0;
+                
+                exportData.push([`Nombre d'élèves: ${totalStudents}`, '', '', '', '', '', '', '', '']);
+                exportData.push([`Moyenne de la classe: ${averageClass}%`, '', '', '', '', '', '', '', '']);
+                exportData.push([`Total général CM: ${totalClassCM.toFixed(2)}`, '', '', '', '', '', '', '', '']);
+                exportData.push([`Total général CO: ${totalClassCO.toFixed(2)}`, '', '', '', '', '', '', '', '']);
+                
+                // Créer un workbook
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet(exportData);
+                
+                // Style des cellules
+                const wscols = [];
+                wscols.push({wch: 5}); // N°
+                wscols.push({wch: 25}); // Nom
+                
+                for(let i = 0; i < teacherCourses.length * 2; i++) {
+                    wscols.push({wch: 12}); // CM et CO
+                }
+                
+                wscols.push({wch: 10}); // Total CM
+                wscols.push({wch: 10}); // Total CO
+                wscols.push({wch: 12}); // Pourcentage
+                
+                ws['!cols'] = wscols;
+                
+                // Fusionner les cellules du titre
+                ws['!merges'] = [
+                    {s: {r:0, c:0}, e: {r:0, c:8}},
+                    {s: {r:1, c:0}, e: {r:1, c:8}},
+                    {s: {r:2, c:0}, e: {r:2, c:2}},
+                ];
+                
+                XLSX.utils.book_append_sheet(wb, ws, `Cotes ${currentPeriod}`);
+                
+                // Exporter le fichier
+                const fileName = `Cotes_${currentPeriod}_${formatDateForExport(new Date())}.xlsx`;
+                XLSX.writeFile(wb, fileName);
+                
+                showAlert(`Fichier Excel exporté avec succès: ${fileName}`, 'success');
+                
+            } catch (error) {
+                console.error("Erreur export Excel:", error);
+                showAlert("Erreur lors de l'export Excel: " + error.message, 'error');
+            }
+        }
+
+        function formatDateForExport(date) {
+            return date.toISOString().split('T')[0].replace(/-/g, '');
+        }
+
+        async function exportToWord() {
+            try {
+                const periodData = allPeriodsData[currentPeriod];
+                
+                // Créer le contenu HTML pour le document Word
+                let htmlContent = `
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>Tableau des Cotes - ${currentPeriod}</title>
+                        <style>
+                            body {
+                                font-family: 'Arial', sans-serif;
+                                margin: 40px;
+                                color: #333;
+                            }
+                            .header {
+                                text-align: center;
+                                margin-bottom: 30px;
+                                border-bottom: 3px solid #3498db;
+                                padding-bottom: 20px;
+                            }
+                            .header h1 {
+                                color: #2c3e50;
+                                font-size: 24px;
+                                margin-bottom: 10px;
+                            }
+                            .header h2 {
+                                color: #3498db;
+                                font-size: 20px;
+                                margin-bottom: 15px;
+                            }
+                            .info-box {
+                                background-color: #f8f9fa;
+                                padding: 15px;
+                                border-radius: 8px;
+                                margin-bottom: 30px;
+                                border-left: 4px solid #3498db;
+                            }
+                            .info-row {
+                                display: flex;
+                                justify-content: space-between;
+                                margin-bottom: 5px;
+                            }
+                            .info-label {
+                                font-weight: bold;
+                                color: #2c3e50;
+                            }
+                            .info-value {
+                                color: #34495e;
+                            }
+                            table {
+                                width: 100%;
+                                border-collapse: collapse;
+                                margin-top: 20px;
+                                font-size: 12px;
+                            }
+                            th {
+                                background-color: #3498db;
+                                color: white;
+                                font-weight: bold;
+                                padding: 12px 8px;
+                                text-align: center;
+                                border: 1px solid #2980b9;
+                            }
+                            td {
+                                padding: 10px 8px;
+                                text-align: center;
+                                border: 1px solid #ddd;
+                            }
+                            tr:nth-child(even) {
+                                background-color: #f9f9f9;
+                            }
+                            .sub-header {
+                                background-color: #2c3e50 !important;
+                            }
+                            .total-row {
+                                background-color: #ecf0f1 !important;
+                                font-weight: bold;
+                            }
+                            .percentage-cell {
+                                font-weight: bold;
+                                color: #27ae60;
+                            }
+                            .footer {
+                                margin-top: 40px;
+                                text-align: center;
+                                color: #7f8c8d;
+                                font-size: 11px;
+                                border-top: 1px solid #ddd;
+                                padding-top: 20px;
+                            }
+                            .signature {
+                                margin-top: 40px;
+                                text-align: right;
+                            }
+                            .signature-line {
+                                border-top: 1px solid #333;
+                                width: 200px;
+                                display: inline-block;
+                                margin-top: 60px;
+                            }
+                            .stats-box {
+                                background-color: #e8f4fc;
+                                padding: 15px;
+                                border-radius: 8px;
+                                margin-top: 30px;
+                            }
+                            .stats-title {
+                                font-weight: bold;
+                                color: #2c3e50;
+                                margin-bottom: 10px;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="header">
+                            <h1>COMPLEXE SCOLAIRE LA COLOMBE</h1>
+                            <h2>TABLEAU DES COTES - ${currentPeriod}</h2>
+                        </div>
+                        
+                        <div class="info-box">
+                            <div class="info-row">
+                                <span class="info-label">Enseignant:</span>
+                                <span class="info-value">${currentTeacher.fullName}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Classe(s):</span>
+                                <span class="info-value">${teacherClasses.join(', ')}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Date d'export:</span>
+                                <span class="info-value">${new Date().toLocaleDateString('fr-FR')} ${new Date().toLocaleTimeString('fr-FR')}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Nombre d'élèves:</span>
+                                <span class="info-value">${teacherStudents.length}</span>
+                            </div>
+                        </div>
+                        
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th rowspan="2">N°</th>
+                                    <th rowspan="2">Nom Complet</th>
+                `;
+                
+                // Ajouter les en-têtes des cours
+                teacherCourses.forEach(course => {
+                    htmlContent += `<th colspan="2">${course.name}</th>`;
+                });
+                
+                htmlContent += `
+                                    <th rowspan="2">Total CM</th>
+                                    <th rowspan="2">Total CO</th>
+                                    <th rowspan="2">Pourcentage</th>
+                                </tr>
+                                <tr class="sub-header">
+                `;
+                
+                teacherCourses.forEach(() => {
+                    htmlContent += `<th>CM</th><th>CO</th>`;
+                });
+                
+                htmlContent += `
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                
+                // Variables pour les statistiques
+                let totalClassCM = 0;
+                let totalClassCO = 0;
+                
+                // Ajouter les données des élèves
+                teacherStudents.forEach((student, index) => {
+                    const studentId = student.matricule;
+                    htmlContent += `<tr>`;
+                    htmlContent += `<td>${index + 1}</td>`;
+                    htmlContent += `<td style="text-align: left;">${student.fullName}</td>`;
+                    
+                    let studentCM = 0;
+                    let studentCO = 0;
+                    
+                    teacherCourses.forEach(course => {
+                        const courseGrade = periodData && periodData[studentId] ? periodData[studentId][course.id] : null;
+                        const gradeValue = courseGrade ? courseGrade.grade : 0;
+                        
+                        if (currentPeriod.includes('Total') || currentPeriod === 'Total Général') {
+                            const courseCM = courseGrade ? courseGrade.totalCM || 0 : 0;
+                            htmlContent += `<td>${courseCM}</td>`;
+                            htmlContent += `<td>${gradeValue.toFixed(2)}</td>`;
+                            studentCM += courseCM;
+                            studentCO += gradeValue;
+                        } else {
+                            const courseCM = getCMForPeriod(currentPeriod, course.id);
+                            htmlContent += `<td>${courseCM}</td>`;
+                            htmlContent += `<td>${gradeValue.toFixed(2)}</td>`;
+                            studentCM += courseCM;
+                            studentCO += gradeValue;
+                        }
+                    });
+                    
+                    const studentPercentage = studentCM > 0 ? (studentCO / studentCM * 100).toFixed(2) : 0;
+                    
+                    htmlContent += `<td class="total-row">${studentCM.toFixed(2)}</td>`;
+                    htmlContent += `<td class="total-row">${studentCO.toFixed(2)}</td>`;
+                    htmlContent += `<td class="percentage-cell">${studentPercentage}%</td>`;
+                    htmlContent += `</tr>`;
+                    
+                    totalClassCM += studentCM;
+                    totalClassCO += studentCO;
+                });
+                
+                // Ligne de totaux
+                const classAverage = totalClassCM > 0 ? (totalClassCO / totalClassCM * 100).toFixed(2) : 0;
+                
+                htmlContent += `
+                            </tbody>
+                        </table>
+                        
+                        <div class="stats-box">
+                            <div class="stats-title">STATISTIQUES DE LA CLASSE</div>
+                            <div class="info-row">
+                                <span class="info-label">Nombre d'élèves:</span>
+                                <span class="info-value">${teacherStudents.length}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Total général CM:</span>
+                                <span class="info-value">${totalClassCM.toFixed(2)}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Total général CO:</span>
+                                <span class="info-value">${totalClassCO.toFixed(2)}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Moyenne de la classe:</span>
+                                <span class="info-value">${classAverage}%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="signature">
+                            <p>Fait à Kinshasa, le ${new Date().toLocaleDateString('fr-FR')}</p>
+                            <p>Le Professeur</p>
+                            <div class="signature-line"></div>
+                            <p><strong>${currentTeacher.fullName}</strong></p>
+                        </div>
+                        
+                        <div class="footer">
+                            <p>Complexe Scolaire la Colombe - Portail Enseignant Primaire</p>
+                            <p>Export généré le ${new Date().toLocaleString('fr-FR')}</p>
+                            <p>Document confidentiel - Usage interne uniquement</p>
+                        </div>
+                    </body>
+                    </html>
+                `;
+                
+                // Créer un blob et télécharger le fichier
+                const blob = new Blob([htmlContent], { type: 'application/msword' });
+                const fileName = `Cotes_${currentPeriod}_${formatDateForExport(new Date())}.doc`;
+                saveAs(blob, fileName);
+                
+                showAlert(`Fichier Word exporté avec succès: ${fileName}`, 'success');
+                
+            } catch (error) {
+                console.error("Erreur export Word:", error);
+                showAlert("Erreur lors de l'export Word: " + error.message, 'error');
+            }
+        }
+
+        async function exportToPDF() {
+            try {
+                const periodData = allPeriodsData[currentPeriod];
+                
+                // Initialiser jsPDF
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({
+                    orientation: 'landscape',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+                
+                // Variables pour les positions
+                let yPos = 20;
+                const pageWidth = doc.internal.pageSize.width;
+                const margin = 15;
+                
+                // En-tête
+                doc.setFontSize(16);
+                doc.setFont('helvetica', 'bold');
+                doc.text('COMPLEXE SCOLAIRE LA COLOMBE', pageWidth / 2, yPos, { align: 'center' });
+                
+                yPos += 8;
+                doc.setFontSize(14);
+                doc.setTextColor(52, 152, 219);
+                doc.text(`TABLEAU DES COTES - ${currentPeriod}`, pageWidth / 2, yPos, { align: 'center' });
+                
+                yPos += 15;
+                
+                // Informations
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
+                doc.setFont('helvetica', 'normal');
+                
+                const infoLines = [
+                    `Enseignant: ${currentTeacher.fullName}`,
+                    `Classe(s): ${teacherClasses.join(', ')}`,
+                    `Date: ${new Date().toLocaleDateString('fr-FR')}`,
+                    `Nombre d'élèves: ${teacherStudents.length}`
+                ];
+                
+                infoLines.forEach(line => {
+                    doc.text(line, margin, yPos);
+                    yPos += 6;
+                });
+                
+                yPos += 5;
+                
+                // Préparer les données pour le tableau
+                const headers = [['N°', 'Nom Complet']];
+                
+                teacherCourses.forEach(course => {
+                    headers[0].push(`${course.name} (CM)`, `${course.name} (CO)`);
+                });
+                
+                headers[0].push('Total CM', 'Total CO', 'Pourcentage');
+                
+                const rows = [];
+                let totalClassCM = 0;
+                let totalClassCO = 0;
+                
+                teacherStudents.forEach((student, index) => {
+                    const studentId = student.matricule;
+                    const row = [(index + 1).toString(), student.fullName];
+                    
+                    let studentCM = 0;
+                    let studentCO = 0;
+                    
+                    teacherCourses.forEach(course => {
+                        const courseGrade = periodData && periodData[studentId] ? periodData[studentId][course.id] : null;
+                        const gradeValue = courseGrade ? courseGrade.grade : 0;
+                        
+                        if (currentPeriod.includes('Total') || currentPeriod === 'Total Général') {
+                            const courseCM = courseGrade ? courseGrade.totalCM || 0 : 0;
+                            row.push(courseCM.toString(), gradeValue.toFixed(2));
+                            studentCM += courseCM;
+                            studentCO += gradeValue;
+                        } else {
+                            const courseCM = getCMForPeriod(currentPeriod, course.id);
+                            row.push(courseCM.toString(), gradeValue.toFixed(2));
+                            studentCM += courseCM;
+                            studentCO += gradeValue;
+                        }
+                    });
+                    
+                    const studentPercentage = studentCM > 0 ? (studentCO / studentCM * 100).toFixed(2) : 0;
+                    
+                    row.push(studentCM.toFixed(2), studentCO.toFixed(2), `${studentPercentage}%`);
+                    rows.push(row);
+                    
+                    totalClassCM += studentCM;
+                    totalClassCO += studentCO;
+                });
+                
+                // Créer le tableau avec autoTable
+                doc.autoTable({
+                    startY: yPos,
+                    head: headers,
+                    body: rows,
+                    theme: 'grid',
+                    headStyles: {
+                        fillColor: [52, 152, 219],
+                        textColor: [255, 255, 255],
+                        fontStyle: 'bold',
+                        fontSize: 9
+                    },
+                    bodyStyles: {
+                        fontSize: 8
+                    },
+                    alternateRowStyles: {
+                        fillColor: [245, 245, 245]
+                    },
+                    columnStyles: {
+                        0: { cellWidth: 10 }, // N°
+                        1: { cellWidth: 40 }, // Nom
+                    },
+                    margin: { left: margin, right: margin },
+                    didDrawPage: function(data) {
+                        // Ajouter le numéro de page
+                        const pageCount = doc.internal.getNumberOfPages();
+                        doc.setFontSize(8);
+                        doc.text(`Page ${data.pageNumber} / ${pageCount}`, pageWidth - margin, doc.internal.pageSize.height - 10);
+                    }
+                });
+                
+                const finalY = doc.lastAutoTable.finalY || yPos + 20;
+                
+                // Statistiques
+                const classAverage = totalClassCM > 0 ? (totalClassCO / totalClassCM * 100).toFixed(2) : 0;
+                
+                doc.setFontSize(11);
+                doc.setFont('helvetica', 'bold');
+                doc.text('STATISTIQUES DE LA CLASSE', margin, finalY + 10);
+                
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'normal');
+                
+                const stats = [
+                    `Moyenne de la classe: ${classAverage}%`,
+                    `Total général CM: ${totalClassCM.toFixed(2)}`,
+                    `Total général CO: ${totalClassCO.toFixed(2)}`
+                ];
+                
+                stats.forEach((stat, index) => {
+                    doc.text(stat, margin, finalY + 20 + (index * 7));
+                });
+                
+                // Signature
+                const signatureY = finalY + 50;
+                doc.setFontSize(10);
+                doc.text(`Fait à Kinshasa, le ${new Date().toLocaleDateString('fr-FR')}`, pageWidth - 80, signatureY);
+                doc.text('Le Professeur', pageWidth - 80, signatureY + 15);
+                
+                // Ligne de signature
+                doc.setLineWidth(0.5);
+                doc.line(pageWidth - 100, signatureY + 25, pageWidth - 20, signatureY + 25);
+                
+                doc.setFont('helvetica', 'bold');
+                doc.text(currentTeacher.fullName, pageWidth - 80, signatureY + 35);
+                
+                // Pied de page
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'italic');
+                doc.setTextColor(128, 128, 128);
+                doc.text('Complexe Scolaire la Colombe - Portail Enseignant Primaire', pageWidth / 2, doc.internal.pageSize.height - 20, { align: 'center' });
+                doc.text(`Export généré le ${new Date().toLocaleString('fr-FR')}`, pageWidth / 2, doc.internal.pageSize.height - 15, { align: 'center' });
+                
+                // Sauvegarder le PDF
+                const fileName = `Cotes_${currentPeriod}_${formatDateForExport(new Date())}.pdf`;
+                doc.save(fileName);
+                
+                showAlert(`Fichier PDF exporté avec succès: ${fileName}`, 'success');
+                
+            } catch (error) {
+                console.error("Erreur export PDF:", error);
+                showAlert("Erreur lors de l'export PDF: " + error.message, 'error');
+            }
+        }
+
+        // 8. GESTION DES DEVOIRS
+        function initializeHomeworkManagement() {
+            const homeworkFileUpload = document.getElementById('homework-file-upload');
+            const homeworkFileInput = document.getElementById('homework-file');
+            const homeworkFileBtn = document.getElementById('homework-file-btn');
+            const homeworkFilePreview = document.getElementById('homework-file-preview');
+            
+            homeworkFileBtn.addEventListener('click', () => {
+                homeworkFileInput.click();
+            });
+            
+            homeworkFileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        if (file.type.startsWith('image/')) {
+                            homeworkFilePreview.innerHTML = `<img src="${e.target.result}" class="file-preview" alt="Aperçu du fichier">`;
+                        } else {
+                            homeworkFilePreview.innerHTML = `<p><i class="fas fa-file"></i> ${file.name}</p>`;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                    homeworkFileUpload.classList.add('active');
+                }
+            });
+
+            document.getElementById('add-homework-btn').addEventListener('click', async () => {
+                const className = document.getElementById('homework-class').value;
+                const subject = document.getElementById('homework-subject').value;
+                const dueDate = document.getElementById('homework-due-date').value;
+                const title = document.getElementById('homework-title').value;
+                const description = document.getElementById('homework-description').value;
+                const file = document.getElementById('homework-file').files[0];
+                
+                if (!className || !subject || !dueDate || !title || !description) {
+                    showAlert('Veuillez remplir tous les champs obligatoires', 'error');
+                    return;
+                }
+                
+                try {
+                    let fileURL = null;
+                    let fileName = null;
+                    
+                    if (file) {
+                        showAlert('Téléversement du fichier en cours...', 'info');
+                        fileURL = URL.createObjectURL(file);
+                        fileName = file.name;
+                    }
+                    
+                    const homeworkData = {
+                        teacherId: currentTeacher.id,
+                        teacherName: currentTeacher.fullName,
+                        className: className,
+                        subject: subject,
+                        title: title,
+                        description: description,
+                        dueDate: new Date(dueDate),
+                        fileURL: fileURL,
+                        fileName: fileName,
+                        published: true,
+                        period: currentPeriod,
+                        createdAt: new Date()
+                    };
+                    
+                    await addDoc(collection(db, 'homework'), homeworkData);
+                    
+                    showAlert('Devoir publié avec succès! Les parents peuvent maintenant le voir.', 'success');
+                    document.getElementById('homework-form').reset();
+                    homeworkFilePreview.innerHTML = '';
+                    homeworkFileUpload.classList.remove('active');
+                    loadHomeworkList();
+                    
+                } catch (error) {
+                    console.error('Erreur publication devoir:', error);
+                    showAlert('Erreur lors de la publication du devoir: ' + error.message, 'error');
+                }
+            });
+
+            loadHomeworkList();
+        }
+
+        async function loadHomeworkList() {
+            const container = document.getElementById('homework-list-container');
+            
+            try {
+                const homeworkQuery = query(
+                    collection(db, 'homework'),
+                    where('teacherId', '==', currentTeacher.id),
+                    orderBy('createdAt', 'desc')
+                );
+                
+                const homeworkSnap = await getDocs(homeworkQuery);
+                
+                if (homeworkSnap.empty) {
+                    container.innerHTML = '<p>Aucun devoir publié.</p>';
+                    return;
+                }
+                
+                let html = '';
+                
+                homeworkSnap.forEach(doc => {
+                    const homework = doc.data();
+                    const dueDate = homework.dueDate.toDate().toLocaleDateString('fr-FR');
+                    const createdAt = homework.createdAt.toDate().toLocaleDateString('fr-FR');
+                    
+                    html += `
+                        <div class="card homework-card">
+                            <h5>${homework.title}</h5>
+                            <p><strong>Classe:</strong> ${homework.className} | <strong>Matière:</strong> ${homework.subject}</p>
+                            <p><strong>Date de rendu:</strong> ${dueDate}</p>
+                            <p><strong>Date de publication:</strong> ${createdAt}</p>
+                            <p>${homework.description}</p>
+                            ${homework.fileURL ? `<p><a href="${homework.fileURL}" target="_blank" class="btn btn-info btn-sm"><i class="fas fa-file-download"></i> Télécharger le fichier (${homework.fileName})</a></p>` : ''}
+                            <div class="homework-actions">
+                                <button class="btn btn-danger" onclick="deleteHomework('${doc.id}')">
+                                    <i class="fas fa-trash"></i> Supprimer
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                container.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Erreur chargement devoirs:', error);
+                container.innerHTML = '<p>Erreur de chargement des devoirs.</p>';
+            }
+        }
+
+        window.deleteHomework = async (homeworkId) => {
+            if (!confirm('Êtes-vous sûr de vouloir supprimer ce devoir ?')) return;
+            
+            try {
+                await deleteDoc(doc(db, 'homework', homeworkId));
+                showAlert('Devoir supprimé avec succès', 'success');
+                loadHomeworkList();
+            } catch (error) {
+                console.error('Erreur suppression devoir:', error);
+                showAlert('Erreur lors de la suppression du devoir', 'error');
+            }
+        };
+
+        // 9. GESTION DU PROFIL
+        async function loadProfileData() {
+            if (!currentTeacher) return;
+            
+            try {
+                document.getElementById('profile-matricule').value = currentTeacher.matricule || '';
+                document.getElementById('profile-name').value = currentTeacher.fullName || '';
+                document.getElementById('profile-birthdate').value = currentTeacher.birthdate || '';
+                document.getElementById('profile-phone').value = currentTeacher.phone || '';
+                document.getElementById('profile-address').value = currentTeacher.address || '';
+                document.getElementById('profile-classes').value = currentTeacher.classes ? currentTeacher.classes.join(', ') : '';
+                document.getElementById('profile-created').value = formatDate(currentTeacher.createdAt?.toDate()) || '';
+                
+                const photoPreview = document.getElementById('profile-photo-preview');
+                if (currentTeacher.photoURL) {
+                    photoPreview.innerHTML = `<img src="${currentTeacher.photoURL}" class="photo-preview">`;
+                } else {
+                    photoPreview.innerHTML = '<i class="fas fa-user"></i>';
+                }
+            } catch (error) {
+                console.error("Erreur chargement profil:", error);
+            }
+        }
+
+        document.getElementById('profile-photo').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                if (file.size > 5 * 1024 * 1024) {
+                    showAlert("La photo ne doit pas dépasser 5MB", "error");
+                    return;
+                }
+                if (!file.type.startsWith('image/')) {
+                    showAlert("Veuillez sélectionner une image valide", "error");
+                    return;
+                }
+                profilePhotoFile = file;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('profile-photo-preview').innerHTML = `<img src="${e.target.result}" class="photo-preview">`;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('update-profile-btn').addEventListener('click', async () => {
+            if (!currentTeacher) return;
+            
+            const phone = document.getElementById('profile-phone').value;
+            const address = document.getElementById('profile-address').value;
+            
+            try {
+                let photoURL = currentTeacher.photoURL;
+                if (profilePhotoFile) {
+                    photoURL = URL.createObjectURL(profilePhotoFile);
+                }
+                
+                await updateDoc(doc(db, 'primary_teachers', currentTeacher.id), {
+                    phone,
+                    address,
+                    photoURL,
+                    updatedAt: serverTimestamp()
+                });
+                
+                currentTeacher.phone = phone;
+                currentTeacher.address = address;
+                currentTeacher.photoURL = photoURL;
+                
+                updateTeacherProfileDisplay();
+                showAlert('Profil mis à jour avec succès !', 'success');
+                profilePhotoFile = null;
+            } catch (error) {
+                console.error("Erreur mise à jour profil:", error);
+                showAlert('Erreur lors de la mise à jour du profil: ' + error.message, 'error');
+            }
+        });
+
+        // 10. FONCTIONS UTILITAIRES
+        function formatDate(date) {
+            if (!date) return 'Non définie';
+            return date.toLocaleDateString('fr-FR', { 
+                day: '2-digit', 
+                month: '2-digit', 
+                year: 'numeric'
+            });
+        }
+
+        function setupNavigation() {
+            document.querySelectorAll('.nav-menu a').forEach(link => {
+                link.addEventListener('click', e => {
+                    e.preventDefault();
+                    document.querySelectorAll('.nav-menu a, .page').forEach(el => el.classList.remove('active'));
+                    link.classList.add('active');
+                    document.getElementById(link.dataset.page + '-page').classList.add('active');
+                    document.getElementById('page-title').textContent = link.textContent;
+                    
+                    if (link.dataset.page === 'dashboard') {
+                        loadDashboardStats();
+                    } else if (link.dataset.page === 'my-students') {
+                        loadTeacherStudents();
+                    } else if (link.dataset.page === 'grade-management') {
+                        loadTeacherCourses();
+                    } else if (link.dataset.page === 'homework') {
+                        loadHomeworkList();
+                    } else if (link.dataset.page === 'profile') {
+                        loadProfileData();
+                    }
+                    
+                    if (window.innerWidth <= 768) {
+                        document.querySelector('.sidebar').classList.add('collapsed');
+                    }
+                });
+            });
+            
+            document.querySelectorAll('.stat-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const targetPage = this.getAttribute('data-target');
+                    if (targetPage) {
+                        document.querySelectorAll('.nav-menu a, .page').forEach(el => el.classList.remove('active'));
+                        document.querySelector(`.nav-menu a[data-page="${targetPage}"]`).classList.add('active');
+                        document.getElementById(targetPage + '-page').classList.add('active');
+                        document.getElementById('page-title').textContent = document.querySelector(`.nav-menu a[data-page="${targetPage}"]`).textContent;
+                    }
+                });
+            });
+        }
+
+        function setupEventListeners() {
+            document.getElementById('menu-toggle').addEventListener('click', () => {
+                document.querySelector('.sidebar').classList.toggle('collapsed');
+            });
+            
+            document.addEventListener('click', (e) => {
+                const sidebar = document.querySelector('.sidebar');
+                const menuToggle = document.getElementById('menu-toggle');
+                
+                if (window.innerWidth <= 768 && 
+                    !sidebar.contains(e.target) && 
+                    !menuToggle.contains(e.target) &&
+                    !sidebar.classList.contains('collapsed')) {
+                    sidebar.classList.add('collapsed');
+                }
+            });
+            
+            document.getElementById('teacher-logout').addEventListener('click', async () => {
+                if (confirm("Êtes-vous sûr de vouloir vous déconnecter ?")) {
+                    await signOut(auth);
+                    document.getElementById('teacher-app').classList.add('hidden');
+                    document.getElementById('login-overlay').classList.remove('hidden');
+                    document.getElementById('login-form-container').classList.remove('hidden');
+                    document.getElementById('activation-form-container').classList.add('hidden');
+                    showAlert("Déconnexion réussie", "success");
+                }
+            });
+            
+            // Fermer les modals
+            document.querySelectorAll('.close-modal').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.modal').forEach(modal => modal.classList.add('hidden'));
+                });
+            });
+
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.classList.add('hidden');
+                    }
+                });
+            });
+        }
+
+        // 11. FONCTIONS GLOBALES
+        window.viewStudentDetails = async (studentMatricule) => {
+            try {
+                const studentDoc = await getDoc(doc(db, 'primary_students', studentMatricule));
+                
+                if (!studentDoc.exists()) {
+                    showAlert('Élève non trouvé.', 'error');
+                    return;
+                }
+                
+                const data = studentDoc.data();
+                const modalContent = document.getElementById('student-details-content');
+                
+                const photoHTML = data.photoURL 
+                    ? `<img src="${data.photoURL}" class="photo-preview" style="margin: 0 auto 1rem; display: block;">`
+                    : '<div class="photo-placeholder" style="margin: 0 auto 1rem;"><i class="fas fa-user"></i></div>';
+                
+                modalContent.innerHTML = `
+                    ${photoHTML}
+                    <div class="student-details">
+                        <div class="detail-item">
+                            <label>Matricule</label>
+                            <p>${data.matricule}</p>
+                        </div>
+                        <div class="detail-item">
+                            <label>Nom complet</label>
+                            <p>${data.fullName}</p>
+                        </div>
+                        <div class="detail-item">
+                            <label>Date de naissance</label>
+                            <p>${data.birthdate}</p>
+                        </div>
+                        <div class="detail-item">
+                            <label>Lieu de naissance</label>
+                            <p>${data.birthplace || 'Non spécifié'}</p>
+                        </div>
+                        <div class="detail-item">
+                            <label>Sexe</label>
+                            <p>${data.gender === 'M' ? 'Masculin' : data.gender === 'F' ? 'Féminin' : 'Non spécifié'}</p>
+                        </div>
+                        <div class="detail-item">
+                            <label>Adresse</label>
+                            <p>${data.address || 'Non spécifié'}</p>
+                        </div>
+                        <div class="detail-item">
+                            <label>Classe</label>
+                            <p>${data.class}</p>
+                        </div>
+                        <div class="detail-item">
+                            <label>Nom du parent</label>
+                            <p>${data.parentName}</p>
+                        </div>
+                        <div class="detail-item">
+                            <label>Téléphone du parent</label>
+                            <p>${data.parentPhone}</p>
+                        </div>
+                        <div class="detail-item">
+                            <label>Adresse du parent</label>
+                            <p>${data.parentAddress || 'Non spécifié'}</p>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('student-details-modal').classList.remove('hidden');
+            } catch (error) {
+                showAlert('Erreur: ' + error.message, 'error');
+            }
+        };
+
+        // 12. SURVEILLANCE DE L'ÉTAT D'AUTHENTIFICATION
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                try {
+                    const teacherQuery = query(collection(db, 'primary_teachers'), where('uid', '==', user.uid));
+                    const teacherSnapshot = await getDocs(teacherQuery);
+                    
+                    if (!teacherSnapshot.empty) {
+                        const teacherDoc = teacherSnapshot.docs[0];
+                        currentTeacher = { id: teacherDoc.id, ...teacherDoc.data() };
+                        
+                        document.getElementById('login-overlay').classList.add('hidden');
+                        document.getElementById('teacher-app').classList.remove('hidden');
+                        initializeTeacherApp();
+                    }
+                } catch (error) {
+                    console.error("Erreur récupération données enseignant:", error);
+                }
+            } else {
+                document.getElementById('teacher-app').classList.add('hidden');
+                document.getElementById('login-overlay').classList.remove('hidden');
+            }
+        });
+    </script>
+<script>
+// Initialisation immédiate
+(function() {
+  // Vérifier si Service Worker est supporté
+  if ('serviceWorker' in navigator) {
+    // Enregistrer le Service Worker immédiatement
+    window.addEventListener('load', async () => {
+      try {
+        const registration = await navigator.serviceWorker.register('sw.js');
+        console.log('✅ Service Worker enregistré avec succès');
+        
+        // Vérifier les mises à jour toutes les 15 minutes
+        setInterval(() => {
+          registration.update();
+        }, 15 * 60 * 1000);
+        
+        // Vérifier maintenant
+        setTimeout(() => {
+          registration.update();
+        }, 10000);
+        
+      } catch (error) {
+        console.error('❌ Erreur Service Worker:', error);
+      }
+    });
+  }
+  
+  // Afficher la version dans la console
+  console.log('%c🚀 hybrilink - Espace Enseignant', 'color: #3498db; font-size: 16px; font-weight: bold;');
+  console.log('%cSystème de mise à jour en temps réel activé', 'color: #2ecc71;');
+  
+})();
+
+// Fonctions utilitaires
+window.reloadApp = function() {
+  window.location.reload();
+};
+
+window.clearAppCache = function() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(registrations => {
+      registrations.forEach(registration => {
+        registration.unregister();
+      });
+    });
+  }
+  
+  caches.keys().then(cacheNames => {
+    cacheNames.forEach(cacheName => {
+      caches.delete(cacheName);
+    });
+  });
+  
+  localStorage.clear();
+  sessionStorage.clear();
+  
+  setTimeout(() => {
+    window.location.reload();
+  }, 1000);
+};
+
+// Afficher une notification de mise à jour
+function showUpdateNotification(newVersion, previousVersion) {
+  const updateToast = document.createElement('div');
+  updateToast.className = 'notification-toast success';
+  updateToast.innerHTML = `
+    <div class="notification-header">
+      <div class="notification-title">
+        <i class="fas fa-sync-alt"></i> Mise à jour disponible
+      </div>
+      <button class="notification-close">&times;</button>
+    </div>
+    <div class="notification-body">
+      <p>Une nouvelle version (${newVersion}) de l'application est disponible !</p>
+      <p><small>Version précédente: ${previousVersion || 'inconnue'}</small></p>
+      <div class="notification-actions" style="margin-top: 10px;">
+        <button class="btn btn-primary btn-sm" id="update-app-btn">
+          <i class="fas fa-redo"></i> Mettre à jour
+        </button>
+        <button class="btn btn-secondary btn-sm" id="later-update-btn">
+          Plus tard
+        </button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(updateToast);
+  
+  setTimeout(() => {
+    updateToast.classList.add('show');
+  }, 1000);
+  
+  // Gérer le bouton de mise à jour
+  document.getElementById('update-app-btn').addEventListener('click', () => {
+    updateToast.classList.remove('show');
+    setTimeout(() => updateToast.remove(), 300);
+    
+    // Recharger la page pour activer la nouvelle version
+    window.location.reload();
+  });
+  
+  // Gérer le bouton "Plus tard"
+  document.getElementById('later-update-btn').addEventListener('click', () => {
+    updateToast.classList.remove('show');
+    setTimeout(() => updateToast.remove(), 300);
+  });
+  
+  // Fermer le toast
+  updateToast.querySelector('.notification-close').addEventListener('click', () => {
+    updateToast.classList.remove('show');
+    setTimeout(() => updateToast.remove(), 300);
+  });
+}
+
+// Vérifier les mises à jour manuellement
+async function checkForUpdates() {
+  try {
+    const response = await fetch(`/version-check.json?t=${Date.now()}`);
+    const data = await response.json();
+    
+    // Vérifier la version actuelle depuis le service worker
+    if (navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        type: 'GET_VERSION'
+      });
+    }
+    
+    // Comparer avec la version stockée localement
+    const currentVersion = localStorage.getItem('app_version');
+    
+    if (currentVersion !== data.version) {
+      // Nouvelle version disponible
+      showUpdateNotification(data.version, currentVersion);
+      localStorage.setItem('app_version', data.version);
+    }
+    
+  } catch (error) {
+    console.error('Erreur lors de la vérification des mises à jour:', error);
+  }
+}
+
+// Vérifier la version au chargement
+window.addEventListener('load', () => {
+  // Stocker la version actuelle
+  if (!localStorage.getItem('app_version')) {
+    localStorage.setItem('app_version', '1.0.0');
+  }
+  
+  // Vérifier les mises à jour après 5 secondes
+  setTimeout(() => {
+    checkForUpdates();
+  }, 5000);
+});
+
+// Écouter les événements de mise à jour du service worker
+let refreshing = false;
+navigator.serviceWorker.addEventListener('controllerchange', () => {
+  if (!refreshing) {
+    refreshing = true;
+    window.location.reload();
+  }
+});
+</script>
+
+</body>
+</html>
