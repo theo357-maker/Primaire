@@ -1424,7 +1424,7 @@
     <div id="login-overlay" class="login-overlay">
         <div class="login-card">
             <h3>Portail Enseignant Primaire</h3>
-            <p>hybrilink</p>
+            <p>Complexe Scolaire la Colombe</p>
             
             <!-- Formulaire de connexion -->
             <div id="login-form-container">
@@ -2986,7 +2986,7 @@
                 const exportData = [];
                 
                 // En-tête principal
-                const mainHeader = ['hybrilink', '', '', '', '', '', '', '', ''];
+                const mainHeader = ['COMPLEXE SCOLAIRE LA COLOMBE', '', '', '', '', '', '', '', ''];
                 exportData.push(mainHeader);
                 
                 const titleHeader = [`TABLEAU DES COTES - ${currentPeriod}`, '', '', '', '', '', '', '', ''];
@@ -3249,7 +3249,7 @@
                     </head>
                     <body>
                         <div class="header">
-                            <h1>hybrilink</h1>
+                            <h1>COMPLEXE SCOLAIRE LA COLOMBE</h1>
                             <h2>TABLEAU DES COTES - ${currentPeriod}</h2>
                         </div>
                         
@@ -3381,7 +3381,7 @@
                         </div>
                         
                         <div class="footer">
-                            <p>hybrilink - Portail Enseignant Primaire</p>
+                            <p>Complexe Scolaire la Colombe - Portail Enseignant Primaire</p>
                             <p>Export généré le ${new Date().toLocaleString('fr-FR')}</p>
                             <p>Document confidentiel - Usage interne uniquement</p>
                         </div>
@@ -3426,7 +3426,7 @@
                 // En-tête
                 doc.setFontSize(16);
                 doc.setFont('helvetica', 'bold');
-                doc.text('hybrilink', pageWidth / 2, yPos, { align: 'center' });
+                doc.text('COMPLEXE SCOLAIRE LA COLOMBE', pageWidth / 2, yPos, { align: 'center' });
                 
                 yPos += 8;
                 doc.setFontSize(14);
@@ -3570,7 +3570,7 @@
                 doc.setFontSize(8);
                 doc.setFont('helvetica', 'italic');
                 doc.setTextColor(128, 128, 128);
-                doc.text('hybrilink - Portail Enseignant Primaire', pageWidth / 2, doc.internal.pageSize.height - 20, { align: 'center' });
+                doc.text('Complexe Scolaire la Colombe - Portail Enseignant Primaire', pageWidth / 2, doc.internal.pageSize.height - 20, { align: 'center' });
                 doc.text(`Export généré le ${new Date().toLocaleString('fr-FR')}`, pageWidth / 2, doc.internal.pageSize.height - 15, { align: 'center' });
                 
                 // Sauvegarder le PDF
